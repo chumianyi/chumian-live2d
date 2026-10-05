@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Live2D 猫猫模型预览</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif; }
+  body {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    color: #e0e0e0;
+    display: flex; flex-direction: column;
+  }
+  .header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 24px;
+    background: rgba(0,0,0,0.35); backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    z-index: 10; flex-shrink: 0;
+  }
+  .header h1 {
+    font-size: 18px; font-weight: 600;
+    background: linear-gradient(90deg, #e94560, #f5a623);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  }
+  .model-tabs { display: flex; gap: 8px; }
+  .tab-btn {
+    padding: 8px 20px; border: 1px solid rgba(255,255,255,0.15); border-radius: 8px;
+    background: rgba(255,255,255,0.05); color: #aaa; cursor: pointer; font-size: 14px;
+    transition: all 0.25s;
+  }
+  .tab-btn:hover { background: rgba(255,255,255,0.12); color: #fff; }
+  .tab-btn.active {
+    background: linear-gradient(135deg, #e94560, #c23152); border-color: transparent; color: #fff;
+    box-shadow: 0 2px 12px rgba(233,69,96,0.4);
+  }
+  .main { flex: 1; display: flex; position: relative; overflow: hidden; }
+  .canvas-wrap { flex: 1; position: relative; cursor: grab; }
+  .canvas-wrap:active { cursor: grabbing; }
+  #live2d-canvas { width: 100%; height: 100%; display: block; }
+  .loading {
+    position: absolute; inset: 0; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    background: rgba(15,20,40,0.88); backdrop-filter: blur(6px);
+    z-index: 5; transition: opacity 0.4s;
+  }
+  .loading.hidden { opacity: 0; pointer-events: none; }
+  .spinner {
+    width: 48px; height: 48px; border: 3px solid rgba(255,255,255,0.1);
+    border-top-color: #e94560; border-radius: 50%; animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-text { margin-top: 16px; font-size: 14px; color: #bbb; }
+  .debug-box {
+    margin-top: 12px; padding: 10px 16px; width: 560px; max-width: 90vw;
+    background: rgba(0,0,0,0.6); border-radius: 8px; font-size: 11px;
+    color: #888; font-family: 'Courier New', monospace; line-height: 1.6;
+    text-align: left; max-height: 260px; overflow-y: auto;
+    white-space: pre-wrap; word-break: break-all;
+  }
+  .debug-box .err { color: #ff6b6b; }
+  .debug-box .ok { color: #51cf66; }
+  .debug-box .info { color: #74c0fc; }
+  .info-badge {
+    position: absolute; top: 16px; left: 16px; padding: 6px 14px;
+    background: rgba(0,0,0,0.4); border-radius: 20px; font-size: 12px; color: #999;
+    backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.06);
+    z-index: 3; pointer-events: none;
+  }
+  .panel {
+    width: 280px; background: rgba(0,0,0,0.35); backdrop-filter: blur(16px);
+    border-left: 1px solid rgba(255,255,255,0.08);
+    display: flex; flex-direction: column; flex-shrink: 0; overflow-y: auto;
+  }
+  .panel::-webkit-scrollbar { width: 4px; }
+  .panel::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 2px; }
+  .panel-section { padding: 16px 18px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+  .panel-section h3 {
+    font-size: 12px; text-transform: uppercase; letter-spacing: 1.5px;
+    color: #888; margin-bottom: 12px; font-weight: 600;
+  }
+  .btn-grid { display: flex; flex-wrap: wrap; gap: 6px; }
+  .ctrl-btn {
+    padding: 7px 14px; border: 1px solid rgba(255,255,255,0.12); border-radius: 6px;
+    background: rgba(255,255,255,0.04); color: #ccc; cursor: pointer; font-size: 13px;
+    transition: all 0.2s; flex: 1; min-width: 70px; text-align: center;
+  }
+  .ctrl-btn:hover { background: rgba(233,69,96,0.2); border-color: rgba(233,69,96,0.5); color: #fff; }
+  .ctrl-btn:active { transform: scale(0.96); }
+  .ctrl-btn.active { background: rgba(233,69,96,0.3); border-color: #e94560; color: #fff; }
+  .slider-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .slider-row label { font-size: 12px; color: #999; width: 48px; flex-shrink: 0; }
+  .slider-row input[type="range"] {
+    flex: 1; -webkit-appearance: none; height: 4px; border-radius: 2px;
+    background: rgba(255,255,255,0.1); outline: none;
+  }
+  .slider-row input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%;
+    background: #e94560; cursor: pointer; box-shadow: 0 0 6px rgba(233,69,96,0.5);
+  }
+  .slider-row .val { font-size: 11px; color: #777; width: 36px; text-align: right; }
+  .slider-row input[type="checkbox"] { width: auto; flex: 0; accent-color: #e94560; width:16px; height:16px; }
+  .hint { font-size: 11px; color: #666; line-height: 1.6; margin-top: 8px; }
+  .empty-tip { font-size: 12px; color: #555; font-style: italic; }
+  .toast {
+    position: fixed; bottom: 24px; left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    padding: 10px 22px; background: rgba(0,0,0,0.75); backdrop-filter: blur(10px);
+    border-radius: 8px; font-size: 13px; color: #ddd;
+    border: 1px solid rgba(255,255,255,0.1); opacity: 0;
+    transition: all 0.3s; z-index: 100; pointer-events: none;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  @media (max-width: 768px) {
+    .panel { width: 220px; }
+    .header h1 { font-size: 15px; }
+    .tab-btn { padding: 6px 12px; font-size: 12px; }
+  }
+</style>
+
+<script src="vendor/pixi.min.js"></script>
+<script src="vendor/live2dcubismcore.min.js"></script>
+<script src="vendor/pixi-live2d-display.min.js"></script>
+</head>
+<body>
+
+<div class="header">
+  <h1>🐱 Live2D 猫猫模型预览</h1>
+  <div class="model-tabs">
+    <button class="tab-btn active" data-model="standard">标准模式</button>
+    <button class="tab-btn" data-model="keyboard">键盘模式</button>
+    <button class="tab-btn" data-model="gamepad">手柄模式</button>
+  </div>
+</div>
+
+<div class="main">
+  <div class="canvas-wrap" id="canvasWrap">
+    <canvas id="live2d-canvas"></canvas>
+    <div class="info-badge" id="infoBadge">标准模式</div>
+    <div class="loading" id="loading">
+      <div class="spinner"></div>
+      <div class="loading-text" id="loadingText">正在初始化...</div>
+      <div class="debug-box" id="debugBox"></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-section">
+      <h3>动作 Motions</h3>
+      <div class="btn-grid" id="motionGrid"><span class="empty-tip">该模型无定义动作</span></div>
+    </div>
+    <div class="panel-section">
+      <h3>表情 Expressions</h3>
+      <div class="btn-grid" id="expressionGrid"></div>
+    </div>
+    <div class="panel-section">
+      <h3>视角 View</h3>
+      <div class="slider-row">
+        <label>缩放</label>
+        <input type="range" id="zoomSlider" min="0.3" max="3" step="0.05" value="1">
+        <span class="val" id="zoomVal">1.0x</span>
+      </div>
+      <div class="slider-row">
+        <label>X 偏移</label>
+        <input type="range" id="xSlider" min="-500" max="500" step="5" value="0">
+        <span class="val" id="xVal">0</span>
+      </div>
+      <div class="slider-row">
+        <label>Y 偏移</label>
+        <input type="range" id="ySlider" min="-500" max="500" step="5" value="0">
+        <span class="val" id="yVal">0</span>
+      </div>
+      <button class="ctrl-btn" id="resetView" style="width:100%;margin-top:4px;">重置视角</button>
+      <div class="hint">💡 拖动画布平移 · 滚轮缩放 · 点击模型播放动作</div>
+    </div>
+    <div class="panel-section">
+      <h3>选项 Options</h3>
+      <div class="slider-row">
+        <label>自动眨眼</label>
+        <input type="checkbox" id="autoBlink" checked>
+      </div>
+      <div class="slider-row">
+        <label>跟随鼠标</label>
+        <input type="checkbox" id="followMouse" checked>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function() {
+  'use strict';
+
+  var debugBox = document.getElementById('debugBox');
+  var loadingText = document.getElementById('loadingText');
+  function dbg(msg, cls) {
+    var line = document.createElement('div');
+    if (cls) line.className = cls;
+    line.textContent = msg;
+    debugBox.appendChild(line);
+    debugBox.scrollTop = debugBox.scrollHeight;
+  }
+  function setLoading(msg) { loadingText.textContent = msg; dbg('→ ' + msg, 'info'); }
+
+  window.addEventListener('error', function(e) {
+    dbg('JS ERROR: ' + e.message + ' [' + (e.filename||'?').split('/').pop() + ':' + (e.lineno||'?') + ']', 'err');
+  });
+  window.addEventListener('unhandledrejection', function(e) {
+    var r = e.reason;
+    dbg('PROMISE ERR: ' + (r && r.message ? r.message : String(r)), 'err');
+  });
+
+  dbg('PIXI: ' + (typeof PIXI !== 'undefined' ? 'v' + PIXI.VERSION : 'MISSING'), typeof PIXI !== 'undefined' ? 'ok' : 'err');
+  dbg('PIXI.live2d: ' + (typeof PIXI !== 'undefined' && typeof PIXI.live2d !== 'undefined' ? 'OK' : 'MISSING'),
+    (typeof PIXI !== 'undefined' && typeof PIXI.live2d !== 'undefined') ? 'ok' : 'err');
+  dbg('Live2DCubismCore: ' + (typeof Live2DCubismCore !== 'undefined' ? 'OK' : 'MISSING'),
+    typeof Live2DCubismCore !== 'undefined' ? 'ok' : 'err');
+
+  if (typeof PIXI === 'undefined' || typeof PIXI.live2d === 'undefined') {
+    setLoading('依赖库未正确加载，请检查 vendor/ 目录');
+    return;
+  }
+
+  var MODELS = {
+    standard: { name: '标准模式', path: 'models/standard/cat_model/cat.model3.json' },
+    keyboard: { name: '键盘模式', path: 'models/keyboard/cat_model/cat.model3.json' },
+    gamepad:  { name: '手柄模式', path: 'models/gamepad/cat_model/cat.model3.json' }
+  };
+
+  var app = null, currentModel = null, currentModelKey = 'standard';
+  var modelConfig = null, baseScale = 1;
+  var isDragging = false, dragStart = {x:0,y:0}, modelStartPos = {x:0,y:0};
+  var idleTimer = null;
+
+  var canvasWrap = document.getElementById('canvasWrap');
+  var canvas = document.getElementById('live2d-canvas');
+  var loadingEl = document.getElementById('loading');
+  var infoBadge = document.getElementById('infoBadge');
+  var motionGrid = document.getElementById('motionGrid');
+  var expressionGrid = document.getElementById('expressionGrid');
+  var toastEl = document.getElementById('toast');
+
+  var toastTimer = null;
+  function showToast(msg) {
+    toastEl.textContent = msg;
+    toastEl.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function() { toastEl.classList.remove('show'); }, 1800);
+  }
+
+  function initApp() {
+    app = new PIXI.Application({
+      view: canvas, resizeTo: canvasWrap, backgroundAlpha: 0,
+      antialias: true, autoDensity: true,
+      resolution: window.devicePixelRatio || 1
+    });
+    dbg('Pixi Application created (renderer=' + app.renderer.type + ')', 'ok');
+  }
+
+  function loadModelWithTimeout(path, timeoutMs) {
+    return new Promise(function(resolve, reject) {
+      var timedOut = false;
+      var timer = setTimeout(function() {
+        timedOut = true;
+        reject(new Error('Live2DModel.from() timeout (' + timeoutMs + 'ms)'));
+      }, timeoutMs);
+      PIXI.live2d.Live2DModel.from(path, { autoInteract: false }).then(function(model) {
+        if (timedOut) return;
+        clearTimeout(timer);
+        resolve(model);
+      }).catch(function(err) {
+        if (timedOut) return;
+        clearTimeout(timer);
+        reject(err);
+      });
+    });
+  }
+
+  async function loadModel(key) {
+    currentModelKey = key;
+    var cfg = MODELS[key];
+    infoBadge.textContent = cfg.name;
+    setLoading('加载 ' + cfg.name + ' ...');
+    loadingEl.classList.remove('hidden');
+
+    if (currentModel) {
+      app.stage.removeChild(currentModel);
+      try { currentModel.destroy({ children: true }); } catch(e) {}
+      currentModel = null;
+    }
+    clearInterval(idleTimer);
+
+    try {
+      dbg('Fetching model3.json: ' + cfg.path, 'info');
+      var res = await fetch(cfg.path);
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      modelConfig = await res.json();
+      var fr = modelConfig.FileReferences;
+      dbg('model3.json OK: moc=' + fr.Moc +
+          ', textures=' + (fr.Textures||[]).length +
+          ', expressions=' + (fr.Expressions||[]).length +
+          ', motions=' + Object.keys(fr.Motions||{}).length, 'ok');
+
+      dbg('Calling Live2DModel.from() ...', 'info');
+      var model = await loadModelWithTimeout(cfg.path, 30000);
+      dbg('Model created: ' + model.width + 'x' + model.height, 'ok');
+
+      currentModel = model;
+      app.stage.addChild(model);
+      fitModel();
+      model.autoBlink = document.getElementById('autoBlink').checked;
+      buildMotionButtons();
+      buildExpressionButtons();
+      setupAutoIdle();
+      setupModelInteraction(model);
+
+      loadingEl.classList.add('hidden');
+      showToast(cfg.name + ' 加载完成');
+      dbg('Model ready: ' + cfg.name, 'ok');
+
+    } catch (err) {
+      dbg('Model load FAILED: ' + err.message, 'err');
+      if (err.stack) dbg('  ' + err.stack.split('\n').slice(0,4).join(' | '), 'err');
+      setLoading('加载失败: ' + err.message);
+      showToast('加载失败: ' + err.message);
+    }
+  }
+
+  function fitModel() {
+    if (!currentModel || !app) return;
+    var w = app.screen.width, h = app.screen.height;
+    var mw = currentModel.width, mh = currentModel.height;
+    if (!mw || !mh) { dbg('fitModel: zero dimensions', 'err'); return; }
+    var scale = Math.min(w / mw * 0.8, h / mh * 0.75);
+    baseScale = scale;
+    currentModel.scale.set(scale);
+    currentModel.anchor.set(0.5, 0.5);
+    currentModel.x = w / 2;
+    currentModel.y = h / 2 + mh * scale * 0.05;
+    dbg('fitModel: scale=' + scale.toFixed(3), 'info');
+    document.getElementById('zoomSlider').value = 1;
+    document.getElementById('zoomVal').textContent = '1.0x';
+    document.getElementById('xSlider').value = 0;
+    document.getElementById('xVal').textContent = '0';
+    document.getElementById('ySlider').value = 0;
+    document.getElementById('yVal').textContent = '0';
+  }
+
+  function buildMotionButtons() {
+    motionGrid.innerHTML = '';
+    var motions = modelConfig && modelConfig.FileReferences && modelConfig.FileReferences.Motions;
+    if (!motions || Object.keys(motions).length === 0) {
+      motionGrid.innerHTML = '<span class="empty-tip">该模型无定义动作</span>';
+      return;
+    }
+    for (var group in motions) {
+      motions[group].forEach(function(m, i) {
+        var btn = document.createElement('button');
+        btn.className = 'ctrl-btn';
+        btn.textContent = m.File.replace('.motion3.json', '').replace('live2d_', '');
+        (function(g, idx) {
+          btn.addEventListener('click', function() { playMotion(g, idx); });
+        })(group, i);
+        motionGrid.appendChild(btn);
+      });
+    }
+  }
+
+  function playMotion(group, index) {
+    if (!currentModel) return;
+    try {
+      currentModel.motion(group, index);
+      showToast('播放动作: ' + group + ' #' + (index + 1));
+    } catch (e) { dbg('motion error: ' + e.message, 'err'); showToast('动作播放失败'); }
+  }
+
+  function buildExpressionButtons() {
+    expressionGrid.innerHTML = '';
+    var exps = modelConfig && modelConfig.FileReferences && modelConfig.FileReferences.Expressions;
+    if (!exps || exps.length === 0) {
+      expressionGrid.innerHTML = '<span class="empty-tip">无表情</span>';
+      return;
+    }
+    exps.forEach(function(exp, i) {
+      var btn = document.createElement('button');
+      btn.className = 'ctrl-btn';
+      btn.textContent = exp.Name || ('表情' + (i + 1));
+      (function(idx) {
+        btn.addEventListener('click', function() {
+          setExpression(idx);
+          var btns = expressionGrid.querySelectorAll('.ctrl-btn');
+          btns.forEach(function(b) { b.classList.remove('active'); });
+          if (btns[idx]) btns[idx].classList.add('active');
+        });
+      })(i);
+      expressionGrid.appendChild(btn);
+    });
+  }
+
+  function setExpression(index) {
+    if (!currentModel) return;
+    try { currentModel.expression(index); } catch (e) { dbg('expression error: ' + e.message, 'err'); }
+  }
+
+  function setupAutoIdle() {
+    clearInterval(idleTimer);
+    var motions = modelConfig && modelConfig.FileReferences && modelConfig.FileReferences.Motions;
+    if (!motions) return;
+    var groups = [];
+    for (var g in motions) { groups.push([g, motions[g]]); }
+    if (groups.length === 0) return;
+    idleTimer = setInterval(function() {
+      if (!currentModel) return;
+      var pick = groups[Math.floor(Math.random() * groups.length)];
+      var idx = Math.floor(Math.random() * pick[1].length);
+      try { currentModel.motion(pick[0], idx); } catch (e) {}
+    }, 8000);
+  }
+
+  function setupModelInteraction(model) {
+    model.interactive = true;
+    model.on('pointertap', function() {
+      var motions = modelConfig && modelConfig.FileReferences && modelConfig.FileReferences.Motions;
+      if (motions) {
+        var groups = [];
+        for (var g in motions) { groups.push([g, motions[g]]); }
+        if (groups.length > 0) {
+          var pick = groups[Math.floor(Math.random() * groups.length)];
+          playMotion(pick[0], Math.floor(Math.random() * pick[1].length));
+          return;
+        }
+      }
+      var exps = modelConfig && modelConfig.FileReferences && modelConfig.FileReferences.Expressions;
+      if (exps && exps.length > 0) {
+        var idx = Math.floor(Math.random() * exps.length);
+        setExpression(idx);
+        var btns = expressionGrid.querySelectorAll('.ctrl-btn');
+        btns.forEach(function(b, bi) { b.classList.toggle('active', bi === idx); });
+        showToast('切换表情');
+      }
+    });
+  }
+
+  function setupInteraction() {
+    canvasWrap.addEventListener('pointerdown', function(e) {
+      if (e.target.closest('.panel')) return;
+      isDragging = true;
+      dragStart = { x: e.clientX, y: e.clientY };
+      if (currentModel) modelStartPos = { x: currentModel.x, y: currentModel.y };
+      try { canvasWrap.setPointerCapture(e.pointerId); } catch(err) {}
+    });
+    canvasWrap.addEventListener('pointermove', function(e) {
+      if (currentModel && document.getElementById('followMouse').checked && !isDragging) {
+        try {
+          var rect = canvasWrap.getBoundingClientRect();
+          var mx = ((e.clientX - rect.left) / rect.width - 0.5) * 2;
+          var my = ((e.clientY - rect.top) / rect.height - 0.5) * 2;
+          var core = currentModel.internalModel && currentModel.internalModel.coreModel;
+          if (core) {
+            trySetParam(core, 'ParamAngleX', mx * 30);
+            trySetParam(core, 'ParamAngleY', my * 30);
+            trySetParam(core, 'ParamBodyAngleX', mx * 10);
+            trySetParam(core, 'ParamEyeBallX', mx);
+            trySetParam(core, 'ParamEyeBallY', my);
+          }
+        } catch (err) {}
+      }
+      if (!isDragging || !currentModel) return;
+      var dx = e.clientX - dragStart.x, dy = e.clientY - dragStart.y;
+      currentModel.x = modelStartPos.x + dx;
+      currentModel.y = modelStartPos.y + dy;
+      document.getElementById('xSlider').value = Math.round(currentModel.x - app.screen.width / 2);
+      document.getElementById('xVal').textContent = Math.round(currentModel.x - app.screen.width / 2);
+      document.getElementById('ySlider').value = Math.round(currentModel.y - app.screen.height / 2);
+      document.getElementById('yVal').textContent = Math.round(currentModel.y - app.screen.height / 2);
+    });
+    canvasWrap.addEventListener('pointerup', function(e) {
+      isDragging = false;
+      try { canvasWrap.releasePointerCapture(e.pointerId); } catch(err) {}
+    });
+    canvasWrap.addEventListener('wheel', function(e) {
+      e.preventDefault();
+      if (!currentModel) return;
+      var delta = e.deltaY > 0 ? -0.05 : 0.05;
+      var slider = document.getElementById('zoomSlider');
+      var val = Math.max(0.3, Math.min(3, parseFloat(slider.value) + delta));
+      slider.value = val;
+      applyZoom(val);
+    }, { passive: false });
+  }
+
+  function trySetParam(core, name, value) {
+    try {
+      var idx = core.getParameterIndex(name);
+      if (idx >= 0) core.setParameterValueByIdx(idx, value);
+    } catch (e) {}
+  }
+
+  function applyZoom(val) {
+    if (!currentModel) return;
+    currentModel.scale.set(baseScale * val);
+    document.getElementById('zoomVal').textContent = val.toFixed(1) + 'x';
+  }
+
+  function setupControls() {
+    document.getElementById('zoomSlider').addEventListener('input', function(e) { applyZoom(parseFloat(e.target.value)); });
+    document.getElementById('xSlider').addEventListener('input', function(e) {
+      if (!currentModel || !app) return;
+      currentModel.x = app.screen.width / 2 + parseInt(e.target.value);
+      document.getElementById('xVal').textContent = e.target.value;
+    });
+    document.getElementById('ySlider').addEventListener('input', function(e) {
+      if (!currentModel || !app) return;
+      currentModel.y = app.screen.height / 2 + parseInt(e.target.value);
+      document.getElementById('yVal').textContent = e.target.value;
+    });
+    document.getElementById('resetView').addEventListener('click', fitModel);
+    document.getElementById('autoBlink').addEventListener('change', function(e) {
+      if (currentModel) currentModel.autoBlink = e.target.checked;
+    });
+    document.querySelectorAll('.tab-btn').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
+        btn.classList.add('active');
+        loadModel(btn.dataset.model);
+      });
+    });
+  }
+
+  // WebGL detection
+  function hasWebGL() {
+    try {
+      var c = document.createElement('canvas');
+      return !!(c.getContext('webgl2') || c.getContext('webgl') || c.getContext('experimental-webgl'));
+    } catch (e) { return false; }
+  }
+
+  if (!hasWebGL()) {
+    dbg('WebGL NOT available in this browser', 'err');
+    setLoading('⚠️ 当前浏览器不支持 WebGL，无法渲染 Live2D 模型');
+    var webglMsg = document.createElement('div');
+    webglMsg.style.cssText = 'margin-top:16px;padding:14px 20px;background:rgba(233,69,96,0.15);border:1px solid rgba(233,69,96,0.4);border-radius:8px;font-size:13px;color:#ffb3c1;max-width:480px;text-align:left;line-height:1.7;';
+    webglMsg.innerHTML = '<strong>WebGL 不可用</strong><br>Live2D 模型渲染需要 WebGL 支持。请使用以下浏览器打开：<br>• Chrome / Edge 最新版（推荐）<br>• Firefox 最新版<br>• Safari 12+<br><br>如果您在远程桌面/无头环境中运行，请确保启用了 GPU 加速。';
+    loadingEl.appendChild(webglMsg);
+    document.querySelector('.spinner').style.display = 'none';
+  } else {
+    dbg('WebGL available', 'ok');
+    try {
+      initApp();
+      setupInteraction();
+      setupControls();
+      loadModel('standard');
+    } catch (err) {
+      dbg('BOOT ERROR: ' + err.message, 'err');
+      setLoading('初始化失败: ' + err.message);
+    }
+  }
+
+})();
+</script>
+</body>
+</html>

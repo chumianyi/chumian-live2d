@@ -1,0 +1,385 @@
+﻿{
+  "Version": 0,
+  "Name": "cat",
+  "FileReference": {
+    "Icon": "https://xk-live-cn-1302951512.cos.ap-guangzhou.myqcloud.com/xk_client/XKBC_AVATAR/RELEASE/409923/8af28c4da20229b0ce27dfc4ec2d37ca.png",
+    "Model": "C:\\Users\\LENOVO\\Desktop\\桌宠\\星野桌宠猫猫2K\\2K\\img\\keyboard\\cat_model\\cat.model3.json"
+  },
+  "Transform": {
+    "Position": {
+      "X": 0.0,
+      "Y": 0.0,
+      "Z": 0.0
+    },
+    "Rotation": {
+      "X": 0.0,
+      "Y": 0.0,
+      "Z": 0.0
+    },
+    "Scale": {
+      "X": 0.0,
+      "Y": 0.0,
+      "Z": 0.0
+    }
+  },
+  "PhysicsSetting": {
+    "Enable": true,
+    "Strength": 50
+  },
+  "CollideSetting": {
+    "Collides": [
+      {
+        "Position": {
+          "X": 0.0,
+          "Y": 0.0,
+          "Z": 0.0
+        },
+        "Radius": 0.2,
+        "Height": 1.0
+      }
+    ]
+  },
+  "PosMovementSetting": {
+    "Enable": false,
+    "X": 50,
+    "Y": 50,
+    "Z": 50
+  },
+  "CaptureSetting": {
+    "BlinkSensitivity": 50,
+    "BrowSensitivity": 50,
+    "SmileSensitivity": 50,
+    "OpenMouthSensitivity": 50,
+    "HeadRotationSensitivity": 50,
+    "BodyRotationSensitivity": 50,
+    "EyeBlinkMirror": false,
+    "BrowMirror": false,
+    "AutoEyeBlink": false
+  },
+  "ExpressionSetting": {
+    "ResetHotKey": "",
+    "Expressions": [
+      {
+        "Name": "live2d_expression0",
+        "ExpFile": "live2d_expression0.exp3.json",
+        "HotKey": ""
+      },
+      {
+        "Name": "live2d_expression1",
+        "ExpFile": "live2d_expression1.exp3.json",
+        "HotKey": ""
+      },
+      {
+        "Name": "live2d_expression2",
+        "ExpFile": "live2d_expression2.exp3.json",
+        "HotKey": ""
+      }
+    ]
+  },
+  "MotionSetting": {
+    "IdleMotionFile": "",
+    "NoCaptureMotionFile": "",
+    "Motions": [
+      {
+        "Name": "live2d_motion1",
+        "MotionFile": "live2d_motion1.motion3.json",
+        "IsLoop": false,
+        "HotKey": "",
+        "IsKeepEndingFrame": false
+      },
+      {
+        "Name": "live2d_motion2",
+        "MotionFile": "live2d_motion2.motion3.json",
+        "IsLoop": false,
+        "HotKey": "",
+        "IsKeepEndingFrame": false
+      },
+      {
+        "Name": "live2d_motion1",
+        "MotionFile": "live2d_motion1.motion3.json",
+        "IsLoop": false,
+        "HotKey": "",
+        "IsKeepEndingFrame": false
+      },
+      {
+        "Name": "live2d_motion2",
+        "MotionFile": "live2d_motion2.motion3.json",
+        "IsLoop": false,
+        "HotKey": "",
+        "IsKeepEndingFrame": false
+      }
+    ]
+  },
+  "Parameters": [
+    {
+      "Enable": true,
+      "Input": "FaceAngleX",
+      "InputMin": -1.0,
+      "InputMax": 1.0,
+      "InputClamp": true,
+      "Output": "ParamAngleX",
+      "OutputMin": -30.0,
+      "OutputMax": 30.0,
+      "OutputClamp": true,
+      "Smooth": 50,
+      "OutputInvert": false
+    },
+    {
+      "Enable": true,
+      "Input": "FaceAngleY",
+      "InputMin": -1.0,
+      "InputMax": 1.0,
+      "InputClamp": true,
+      "Output": "ParamAngleY",
+      "OutputMin": -30.0,
+      "OutputMax": 30.0,
+      "OutputClamp": true,
+      "Smooth": 50,
+      "OutputInvert": false
+    },
+    {
+      "Enable": true,
+      "Input": "FaceAngleZ",
+      "InputMin": -1.0,
+      "InputMax": 1.0,
+      "InputClamp": true,
+      "Output": "ParamAngleZ",
+      "OutputMin": -30.0,
+      "OutputMax": 30.0,
+      "OutputClamp": true,
+      "Smooth": 50,
+      "OutputInvert": false
+    },
+    {
+      "Enable": true,
+      "Input": "FaceAngleX",
+      "InputMin": -1.0,
+      "InputMax": 1.0,
+      "InputClamp": true,
+      "Output": "ParamBodyAngleX",
+      "OutputMin": -10.0,
+      "OutputMax": 10.0,
+      "OutputClamp": true,
+      "Smooth": 50,
+      "OutputInvert": false
+    },
+    {
+      "Enable": true,
+      "Input": "FaceAngleY",
+      "InputMin": -1.0,
+      "InputMax": 1.0,
+      "InputClamp": true,
+      "Output": "ParamBodyAngleY",
+      "OutputMin": -10.0,
+      "OutputMax": 10.0,
+      "OutputClamp": true,
+      "Smooth": 50,
+      "OutputInvert": false
+    },
+    {
+      "Enable": true,
+      "Input": "FaceAngleZ",
+      "InputMin": -1.0,
+      "InputMax": 1.0,
+      "InputClamp": true,
+      "Output": "ParamBodyAngleZ",
+      "OutputMin": -10.0,
+      "OutputMax": 10.0,
+      "OutputClamp": true,
+      "Smooth": 50,
+      "OutputInvert": false
+    },
+    {
+      "Enable": true,
+      "Input": "EyeLOpen",
+      "InputMin": -1.0,
+      "InputMax": 1.0,
+      "InputClamp": true,
+      "Output": "ParamEyeLOpen",
+      "OutputMin": 0.0,
+      "OutputMax": 1.0,
+      "OutputClamp": true,
+      "Smooth": 50,
+      "OutputInvert": false
+    },
+    {
+      "Enable": true,
+      "Input": "EyeROpen",
+      "InputMin": -1.0,
+      "InputMax": 1.0,
+      "InputClamp": true,
+      "Output": "ParamEyeROpen",
+      "OutputMin": 0.0,
+      "OutputMax": 1.0,
+      "OutputClamp": true,
+      "Smooth": 50,
+      "OutputInvert": false
+    },
+    {
+      "Enable": true,
+      "Input": "EyeBallX",
+      "InputMin": -1.0,
+      "InputMax": 1.0,
+      "InputClamp": true,
+      "Output": "ParamEyeBallX",
+      "OutputMin": -1.0,
+      "OutputMax": 1.0,
+      "OutputClamp": true,
+      "Smooth": 50,
+      "OutputInvert": false
+    },
+    {
+      "Enable": true,
+      "Input": "EyeBallY",
+      "InputMin": -1.0,
+      "InputMax": 1.0,
+      "InputClamp": true,
+      "Output": "ParamEyeBallY",
+      "OutputMin": -1.0,
+      "OutputMax": 1.0,
+      "OutputClamp": true,
+      "Smooth": 50,
+      "OutputInvert": false
+    },
+    {
+      "Enable": true,
+      "Input": "BrowLY",
+      "InputMin": -1.0,
+      "InputMax": 1.0,
+      "InputClamp": true,
+      "Output": "ParamBrowLY",
+      "OutputMin": -1.0,
+      "OutputMax": 1.0,
+      "OutputClamp": true,
+      "Smooth": 50,
+      "OutputInvert": false
+    },
+    {
+      "Enable": true,
+      "Input": "BrowRY",
+      "InputMin": -1.0,
+      "InputMax": 1.0,
+      "InputClamp": true,
+      "Output": "ParamBrowRY",
+      "OutputMin": -1.0,
+      "OutputMax": 1.0,
+      "OutputClamp": true,
+      "Smooth": 50,
+      "OutputInvert": false
+    },
+    {
+      "Enable": true,
+      "Input": "BrowLForm",
+      "InputMin": -1.0,
+      "InputMax": 1.0,
+      "InputClamp": true,
+      "Output": "ParamBrowLForm",
+      "OutputMin": -1.0,
+      "OutputMax": 1.0,
+      "OutputClamp": true,
+      "Smooth": 50,
+      "OutputInvert": false
+    },
+    {
+      "Enable": true,
+      "Input": "BrowRForm",
+      "InputMin": -1.0,
+      "InputMax": 1.0,
+      "InputClamp": true,
+      "Output": "ParamBrowRForm",
+      "OutputMin": -1.0,
+      "OutputMax": 1.0,
+      "OutputClamp": true,
+      "Smooth": 50,
+      "OutputInvert": false
+    },
+    {
+      "Enable": true,
+      "Input": "MouthOpen",
+      "InputMin": -1.0,
+      "InputMax": 1.0,
+      "InputClamp": true,
+      "Output": "ParamMouthOpenY",
+      "OutputMin": 0.0,
+      "OutputMax": 1.0,
+      "OutputClamp": true,
+      "Smooth": 50,
+      "OutputInvert": false
+    },
+    {
+      "Enable": true,
+      "Input": "MouthSmile",
+      "InputMin": -1.0,
+      "InputMax": 1.0,
+      "InputClamp": true,
+      "Output": "ParamMouthForm",
+      "OutputMin": -1.0,
+      "OutputMax": 1.0,
+      "OutputClamp": true,
+      "Smooth": 50,
+      "OutputInvert": false
+    },
+    {
+      "Enable": true,
+      "Input": "MouthSmile",
+      "InputMin": -1.0,
+      "InputMax": 0.0,
+      "InputClamp": true,
+      "Output": "ParamEyeLSmile",
+      "OutputMin": 0.0,
+      "OutputMax": 1.0,
+      "OutputClamp": true,
+      "Smooth": 50,
+      "OutputInvert": false
+    },
+    {
+      "Enable": true,
+      "Input": "MouthSmile",
+      "InputMin": -1.0,
+      "InputMax": 0.0,
+      "InputClamp": true,
+      "Output": "ParamEyeRSmile",
+      "OutputMin": 0.0,
+      "OutputMax": 1.0,
+      "OutputClamp": true,
+      "Smooth": 50,
+      "OutputInvert": false
+    },
+    {
+      "Enable": true,
+      "Input": "Breath",
+      "InputMin": -1.0,
+      "InputMax": 1.0,
+      "InputClamp": true,
+      "Output": "ParamBreath",
+      "OutputMin": 0.0,
+      "OutputMax": 1.0,
+      "OutputClamp": true,
+      "Smooth": 50,
+      "OutputInvert": false
+    },
+    {
+      "Enable": true,
+      "Input": "CheekPuff",
+      "InputMin": -1.0,
+      "InputMax": 1.0,
+      "InputClamp": true,
+      "Output": "ParamCheek",
+      "OutputMin": 0.0,
+      "OutputMax": 1.0,
+      "OutputClamp": true,
+      "Smooth": 50,
+      "OutputInvert": false
+    }
+  ],
+  "DecorationSettings": {
+    "CurrentScheme": 0,
+    "DecorationSchemes": [
+      {
+        "Name": "默认方案",
+        "HotKey": "请设置快捷键",
+        "Decorations": []
+      }
+    ]
+  }
+}
